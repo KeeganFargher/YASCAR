@@ -30,6 +30,7 @@ YASCAR is a monorepo for automatically scraping, storing, and redeeming SHiFT co
 
 | Game | Enum Value | SHiFT API Code |
 |------|------------|----------------|
+| Borderlands 4 | `BL4` | `archway` |
 | Borderlands: Game of the Year Edition | `BL_GOTY` | `mopane` |
 | Borderlands 2 | `BL2` | `willow2` |
 | Borderlands: The Pre-Sequel | `BL_TPS` | `cork` |
@@ -121,7 +122,7 @@ The scraper runs on Cloudflare's cron triggers:
 
 | Schedule | Purpose |
 |----------|---------|
-| `0 */4 * * *` | Scrape all sources every 4 hours |
+| `*/30 * * * *` | Scrape all sources every 30 minutes |
 | `*/15 * * * *` | Snapshot D1 to R2 every 15 minutes |
 
 ---
@@ -309,6 +310,8 @@ interface SourceScraper {
 
 **Currently implemented:**
 - `mentalmars.ts` - Scrapes mentalmars.com
+- `reddit.ts` - Scrapes r/Borderlandsshiftcodes
+- `xsmash.ts` - Scrapes xsmashx88x.github.io
 
 **Adding new scrapers:**
 1. Create file in `src/sources/`

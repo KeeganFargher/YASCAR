@@ -10,7 +10,7 @@ export { Env };
  * Cron identifiers
  */
 const CRON_SNAPSHOT = "*/15 * * * *";
-const CRON_SCRAPE = "*/2 * * * *";
+const CRON_SCRAPE = "*/30 * * * *";
 
 export default {
     /**

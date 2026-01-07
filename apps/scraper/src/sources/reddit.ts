@@ -27,7 +27,7 @@ interface RedditListing {
 
 export class RedditScraper implements SourceScraper {
     readonly name = "reddit";
-    readonly sourceURL = "https://www.reddit.com/r/Borderlandsshiftcodes.json?limit=100";
+    readonly sourceURL = "https://www.reddit.com/r/Borderlandsshiftcodes.json?limit=500";
 
     async scrape(): Promise<ShiftCode[]> {
         console.log(`[${this.name}] Fetching ${this.sourceURL}`);
@@ -54,27 +54,33 @@ export class RedditScraper implements SourceScraper {
 
     private processPosts(posts: RedditPost[]): ShiftCode[] {
         const codes: ShiftCode[] = [];
-        // Regex to find codes in text. 
-        // Note: CODE_REGEX in types is strictly anchored ^...$, 
-        // so we use a global version here for searching
+        // Global regex to find codes in text. 
         const extractionRegex = /[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}/gi;
 
+        let processedCount = 0;
+        let skippedCount = 0;
+
         for (const post of posts) {
-            if (post.kind !== "t3") continue; // t3 = link/text post
+            if (post.kind !== "t3") continue;
 
             const { title, selftext, created_utc, permalink } = post.data;
-            const fullText = `${title}\n${selftext}`;
 
             // Find games from title
-            const game = this.detectGame(title);
-            if (!game) {
-                // Skip if we can't identify the game, or maybe default to universal?
-                // Usually better to be safe.
-                continue;
+            let games = this.detectGame(title);
+            if (!games) {
+                // Fallback to Universal if game not detected, as requested by user
+                console.log(`[reddit] Post '${title.substring(0, 30)}...' has no game in title, defaulting to Universal`);
+                games = [GameTitle.BL4, GameTitle.BL3, GameTitle.BL2, GameTitle.WONDERLANDS];
             }
 
+            const fullText = `${title}\n${selftext}`;
             const matches = fullText.match(extractionRegex);
-            if (!matches) continue;
+
+            if (!matches) {
+                // If it's a valid game post but no code found, log it (might be a false negative or just discussion)
+                // console.log(`[reddit] Skipped post '${title}': No code pattern found`);
+                continue;
+            }
 
             const uniqueCodes = [...new Set(matches.map(c => c.toUpperCase()))];
             const sourceUrl = `https://www.reddit.com${permalink}`;
@@ -90,7 +96,7 @@ export class RedditScraper implements SourceScraper {
             for (const code of uniqueCodes) {
                 codes.push({
                     code,
-                    games: [game],
+                    games, // Use the array of games detected
                     source: sourceUrl,
                     discoveredAt,
                     expires,
@@ -98,19 +104,30 @@ export class RedditScraper implements SourceScraper {
                     // We could try to use the title without the [Tag] part as description
                 });
             }
+            processedCount++;
         }
 
+        console.log(`[reddit] Parsed ${processedCount} posts, skipped ${skippedCount} (game not detected). Found ${codes.length} codes.`);
         return codes;
     }
 
-    private detectGame(title: string): GameTitle | undefined {
+    private detectGame(title: string): GameTitle[] | undefined {
         const t = title.toUpperCase();
-        if (t.includes("BL4") || t.includes("BORDERLANDS 4")) return GameTitle.BL4;
-        if (t.includes("BL3") || t.includes("BORDERLANDS 3")) return GameTitle.BL3;
-        if (t.includes("BL2") || t.includes("BORDERLANDS 2")) return GameTitle.BL2;
-        if (t.includes("TTW") || t.includes("WONDERLANDS")) return GameTitle.WONDERLANDS;
-        if (t.includes("TPS") || t.includes("PRE-SEQUEL")) return GameTitle.BL_TPS;
-        if (t.includes("GOTY")) return GameTitle.BL_GOTY;
+
+        // Handle explicit games
+        if (t.includes("BL4") || t.includes("BORDERLANDS 4")) return [GameTitle.BL4];
+        if (t.includes("BL3") || t.includes("BORDERLANDS 3")) return [GameTitle.BL3];
+        if (t.includes("BL2") || t.includes("BORDERLANDS 2")) return [GameTitle.BL2];
+        if (t.includes("TTW") || t.includes("WONDERLANDS")) return [GameTitle.WONDERLANDS];
+        if (t.includes("TPS") || t.includes("PRE-SEQUEL")) return [GameTitle.BL_TPS];
+        if (t.includes("GOTY")) return [GameTitle.BL_GOTY];
+
+        // Handle multi-game keywords
+        if (t.includes("MULTI") || t.includes("UNIVERSAL") || t.includes("ALL GAMES")) {
+            // "Universal" usually applies to the main 3-4 games
+            return [GameTitle.BL4, GameTitle.BL3, GameTitle.BL2, GameTitle.WONDERLANDS];
+        }
+
         return undefined;
     }
 }

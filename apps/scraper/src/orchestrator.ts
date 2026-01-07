@@ -1,7 +1,7 @@
 import { ScrapedCodeBatch } from "@yascar/types";
 import { MentalMarsScraper } from "./sources/mentalmars";
 import { RedditScraper } from "./sources/reddit";
-import { OrcicornScraper } from "./sources/orcicorn";
+import { XSmashScraper } from "./sources/xsmash";
 import { Env } from "./aggregator";
 import { SourceScraper } from "./sources/types";
 
@@ -11,7 +11,7 @@ import { SourceScraper } from "./sources/types";
 const scrapers: SourceScraper[] = [
     new MentalMarsScraper(),
     new RedditScraper(),
-    // new OrcicornScraper()
+    new XSmashScraper(),
 ];
 
 /**
