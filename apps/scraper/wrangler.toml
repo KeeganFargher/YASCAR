@@ -1,0 +1,55 @@
+name = "yascar-scraper"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+
+# ─────────────────────────────────────────────────────────────
+# D1 Database (source of truth)
+# ─────────────────────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "yascar-codes"
+database_id = "7ff84c37-e9f0-44c5-aa50-e834147641ea"
+
+# ─────────────────────────────────────────────────────────────
+# R2 Bucket (public API snapshots)
+# ─────────────────────────────────────────────────────────────
+[[r2_buckets]]
+binding = "SHIFT_CODES_BUCKET"
+bucket_name = "shift"
+preview_bucket_name = "shift-preview"
+
+# ─────────────────────────────────────────────────────────────
+# Queue (code ingestion)
+# ─────────────────────────────────────────────────────────────
+[[queues.producers]]
+queue = "shift-codes-queue"
+binding = "CODES_QUEUE"
+
+[[queues.consumers]]
+queue = "shift-codes-queue"
+max_batch_size = 10
+max_retries = 3
+
+# ─────────────────────────────────────────────────────────────
+# Cron Triggers
+# ─────────────────────────────────────────────────────────────
+[triggers]
+crons = [
+  "*/2 * * * *",    # Scrape sources every 2 minutes
+  "*/15 * * * *",   # Snapshot to R2 every 15 minutes
+]
+
+# ─────────────────────────────────────────────────────────────
+# Environment Variables (use wrangler secret for sensitive)
+# ─────────────────────────────────────────────────────────────
+# wrangler secret put CLOUDFLARE_ZONE_ID
+# wrangler secret put CLOUDFLARE_API_TOKEN
+
+
+
+[observability]
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true

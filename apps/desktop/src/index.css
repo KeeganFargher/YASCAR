@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+@layer base {
+  body {
+    @apply bg-bl-black text-white font-body;
+    /* Prevent text selection for native feel */
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-display uppercase tracking-wider;
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Borderlands-style button */
+  .btn-bl {
+    @apply relative px-6 py-3 font-display text-lg uppercase tracking-wider
+           border-3 border-black transition-all duration-200
+           shadow-cel hover:-translate-y-0.5 active:translate-y-0 active:shadow-cel-sm;
+  }
+  
+  .btn-bl-primary {
+    @apply btn-bl bg-bl-yellow text-black hover:bg-bl-yellow-light;
+  }
+  
+  .btn-bl-secondary {
+    @apply btn-bl bg-bl-gray text-white border-bl-gray-dark hover:bg-bl-gray-light;
+  }
+  
+  .btn-bl-danger {
+    @apply btn-bl bg-bl-red text-white hover:bg-red-400;
+  }
+  
+  /* Input fields */
+  .input-bl {
+    @apply w-full px-4 py-3 bg-bl-black-light border-3 border-bl-gray
+           text-white placeholder-bl-gray-light font-body
+           focus:border-bl-yellow focus:outline-none focus:shadow-glow-yellow
+           transition-all duration-200;
+  }
+  
+  /* Cards */
+  .card-bl {
+    @apply bg-bl-black-card border-3 border-bl-gray-dark p-6
+           shadow-cel;
+  }
+  
+  /* Cel-shaded text effect */
+  .text-cel {
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8);
+  }
+  
+  /* Status badges */
+  .badge-bl {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold uppercase
+           border-2 border-black shadow-cel-sm;
+  }
+  
+  .badge-success {
+    @apply badge-bl bg-bl-green text-black;
+  }
+  
+  .badge-warning {
+    @apply badge-bl bg-bl-orange text-black;
+  }
+  
+  .badge-error {
+    @apply badge-bl bg-bl-red text-white;
+  }
+  
+  /* Scrollbar styling */
+  .scrollbar-bl::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollbar-bl::-webkit-scrollbar-track {
+    @apply bg-bl-black;
+  }
+  
+  .scrollbar-bl::-webkit-scrollbar-thumb {
+    @apply bg-bl-gray rounded-none;
+  }
+  
+  .scrollbar-bl::-webkit-scrollbar-thumb:hover {
+    @apply bg-bl-yellow;
+  }
+}
+
+/* Title bar drag region */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+/* Make interactive elements not draggable */
+button, input, a, [role="button"] {
+  -webkit-app-region: no-drag;
+}

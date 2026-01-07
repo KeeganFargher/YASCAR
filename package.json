@@ -1,0 +1,24 @@
+{
+  "name": "yascar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Yet Another Shift Code Automatic Redeemer - Monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:scraper": "npm run dev -w @yascar/scraper",
+    "dev:web": "npm run dev -w @yascar/web",
+    "dev:desktop": "npm run dev -w @yascar/desktop",
+    "build": "npm run build -ws --if-present",
+    "lint": "npm run lint -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

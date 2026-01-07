@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+target/
+build/
+bin/
+pkg/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+wrangler.toml.sample
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+.vs/
+*.user
+*.suo
+*.ipch
+*.ntvs*
+*.njsproj
+*.sln.docstates
+
+# OS
+.DS_Store
+Thumbs.db
+EHthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# TypeScript
+*.tsbuildinfo
+
+# Tauri
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/schemas/
+
+# Testing
+coverage/
+.nyc_output/
+
+# YASCAR Specific
+_dump_/
+*.sql
