@@ -2,7 +2,7 @@
   "$schema": "../../../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "YASCAR",
   "version": "0.1.0",
-  "identifier": "com.yascar.app",
+  "identifier": "com.yascar.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",

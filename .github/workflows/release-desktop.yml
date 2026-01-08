@@ -57,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build shared packages
+        run: npm run build --workspace=@yascar/types --workspace=@yascar/shift-client --workspace=@yascar/user-config --if-present
+
       - name: Generate date-based version
         id: get_version
         shell: bash
