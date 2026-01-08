@@ -1,7 +1,9 @@
 import { CodesSection } from './components/CodesSection';
+import { useDownloadLinks } from './hooks/useDownloadLinks';
 import appIcon from './assets/icon.png';
 
 function App() {
+  const { links, loading } = useDownloadLinks();
   return (
     <div className="min-h-screen bg-bl-black relative overflow-hidden">
       {/* CRT and noise overlays */}
@@ -241,7 +243,7 @@ function App() {
 
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <a
-                href="https://github.com/KeeganFargher/YASCAR/releases/latest/download/YASCAR_0.1.0_x64-setup.exe"
+                href={links.windows || 'https://github.com/KeeganFargher/YASCAR/releases/latest'}
                 className="btn-bl-legendary text-xl px-10 py-5 flex items-center gap-3"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -250,7 +252,7 @@ function App() {
                 WINDOWS
               </a>
               <a
-                href="https://github.com/KeeganFargher/YASCAR/releases/latest/download/YASCAR_0.1.0_x64.dmg"
+                href={links.macos || 'https://github.com/KeeganFargher/YASCAR/releases/latest'}
                 className="btn-bl-secondary text-xl px-10 py-5 flex items-center gap-3"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -259,7 +261,7 @@ function App() {
                 MACOS
               </a>
               <a
-                href="https://github.com/KeeganFargher/YASCAR/releases/latest/download/YASCAR_0.1.0_amd64.AppImage"
+                href={links.linux || 'https://github.com/KeeganFargher/YASCAR/releases/latest'}
                 className="btn-bl-secondary text-xl px-10 py-5 flex items-center gap-3"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -270,7 +272,7 @@ function App() {
             </div>
 
             <p className="text-sm text-bl-gray">
-              Version 0.1.0 · Requires Windows 10+, macOS 12+, or Ubuntu 22.04+
+              {loading ? 'Loading...' : `Version ${links.version}`} · Requires Windows 10+, macOS 12+, or Ubuntu 22.04+
             </p>
           </div>
         </section>
