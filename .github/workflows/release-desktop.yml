@@ -114,8 +114,9 @@ jobs:
           
           echo "Updated config files to version $VERSION"
 
-      - name: Build and Release
+      - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
+        id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -125,16 +126,111 @@ jobs:
           tagName: v${{ steps.get_version.outputs.version }}
           releaseName: 'YASCAR v${{ steps.get_version.outputs.version }}'
           releaseBody: |
-            ## YASCAR Desktop App v${{ steps.get_version.outputs.version }}
+            ## Downloads
             
-            Download the appropriate installer for your platform:
-            - **Windows**: `.msi` or `.exe` installer
-            - **macOS**: `.dmg` disk image
-            - **Linux**: `.deb`, `.rpm`, or `.AppImage`
+            | Platform | Download |
+            |----------|----------|
+            | **Windows** | `.msi` or `.exe` installer |
+            | **macOS (Apple Silicon)** | `.dmg` disk image |
+            | **macOS (Intel)** | `.dmg` disk image |
+            | **Linux** | `.deb`, `.rpm`, or `.AppImage` |
             
             See the [documentation](https://github.com/KeeganFargher/YASCAR) for setup instructions.
+            
+            ---
+            
           releaseDraft: ${{ inputs.draft }}
           prerelease: false
           args: ${{ matrix.args }}
+          # Enable auto-generated release notes to append changelog
+          includeRelease: true
+          includeUpdaterJson: true
+
+  # Update release notes after all builds complete
+  update-release-notes:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for changelog
+
+      - name: Generate version (same logic as build)
+        id: get_version
+        run: |
+          YEAR=$(date +'%y')
+          MONTH=$(date +'%-m')
+          DAY=$(date +'%-d')
+          BASE_VERSION="${YEAR}.${MONTH}.${DAY}"
+          
+          EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${BASE_VERSION}" | sort -V | tail -1 || echo "")
+          
+          if [ -z "$EXISTING" ]; then
+            VERSION="$BASE_VERSION"
+          else
+            BUILD_NUM=$(echo "$EXISTING" | sed "s/v${BASE_VERSION}\\.*//" | grep -o '[0-9]*$' || echo "0")
+            if [ -z "$BUILD_NUM" ]; then
+              BUILD_NUM=1
+            else
+              BUILD_NUM=$((BUILD_NUM + 1))
+            fi
+            VERSION="${BASE_VERSION}.${BUILD_NUM}"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          CURRENT_TAG="v${{ steps.get_version.outputs.version }}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          echo "Current tag: $CURRENT_TAG"
+          echo "Previous tag: $PREVIOUS_TAG"
+          
+          # Generate changelog with commit links
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" ${PREVIOUS_TAG}..HEAD)
+          fi
+          
+          # Handle empty changelog
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- No commits since last release"
+          fi
+          
+          # Write to file to preserve multiline content
+          echo "$COMMITS" > changelog.md
+          
+          echo "Generated changelog:"
+          cat changelog.md
+
+      - name: Update Release with Changelog
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          CHANGELOG=$(cat changelog.md)
+          
+          # Get current release body
+          CURRENT_BODY=$(gh release view "v${VERSION}" --json body -q '.body' 2>/dev/null || echo "")
+          
+          # Append changelog to release body
+          NEW_BODY="${CURRENT_BODY}
+          
+          ## What's Changed
+          
+          ${CHANGELOG}
+          "
+          
+          # Update the release
+          gh release edit "v${VERSION}" --notes "$NEW_BODY"
+          
+          echo "✅ Release notes updated with changelog"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
