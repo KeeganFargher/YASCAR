@@ -1,0 +1,6 @@
+name = "yascar-web"
+pages_build_output_dir = "./dist"
+
+# For local development preview
+[dev]
+port = 8788

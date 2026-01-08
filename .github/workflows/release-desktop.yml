@@ -64,8 +64,8 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          # Generate base version from date (YYYY.M.D - no leading zeros for semver)
-          YEAR=$(date +'%Y')
+          # Generate base version from date (YY.M.D - major version must be ≤255 for Windows MSI)
+          YEAR=$(date +'%y')
           MONTH=$(date +'%-m')
           DAY=$(date +'%-d')
           BASE_VERSION="${YEAR}.${MONTH}.${DAY}"
