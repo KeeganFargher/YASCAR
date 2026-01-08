@@ -1,0 +1,13 @@
+# Default to no-cache for HTML files to ensure updates are seen immediately
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Cache static assets (hashed by Vite) for 1 year
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache images/favicon in root if they don't change often (1 day)
+/*.png
+  Cache-Control: public, max-age=86400
+/*.ico
+  Cache-Control: public, max-age=86400
