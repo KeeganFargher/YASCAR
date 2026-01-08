@@ -64,26 +64,35 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          # Generate base version from date (YY.M.D - major version must be ≤255 for Windows MSI)
+          # Generate version from date: YY.M.DNNBB where D=day, NN=00, BB=build number
+          # This keeps it as valid 3-part semver while supporting multiple releases per day
+          # Format: YEAR.MONTH.PATCH where PATCH = (DAY * 100) + BUILD_NUM
+          # Examples: 26.1.800 (Jan 8, first build), 26.1.801 (Jan 8, second build)
           YEAR=$(date +'%y')
           MONTH=$(date +'%-m')
           DAY=$(date +'%-d')
-          BASE_VERSION="${YEAR}.${MONTH}.${DAY}"
+          BASE_PATCH=$((DAY * 100))
           
-          # Check for existing releases with same date prefix
-          EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${BASE_VERSION}" | sort -V | tail -1 || echo "")
+          # Check for existing releases with same year.month prefix
+          YEAR_MONTH_PREFIX="${YEAR}.${MONTH}."
+          EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${YEAR_MONTH_PREFIX}" | sort -V | tail -1 || echo "")
           
           if [ -z "$EXISTING" ]; then
-            VERSION="$BASE_VERSION"
+            # No existing releases this month
+            VERSION="${YEAR}.${MONTH}.${BASE_PATCH}"
           else
-            # Extract build number and increment
-            BUILD_NUM=$(echo "$EXISTING" | sed "s/v${BASE_VERSION}\.*//" | grep -o '[0-9]*$' || echo "0")
-            if [ -z "$BUILD_NUM" ]; then
-              BUILD_NUM=1
+            # Extract the patch number from existing version
+            EXISTING_PATCH=$(echo "$EXISTING" | sed "s/v${YEAR_MONTH_PREFIX}//" | grep -o '^[0-9]*' || echo "0")
+            EXISTING_DAY=$((EXISTING_PATCH / 100))
+            
+            if [ "$EXISTING_DAY" -eq "$DAY" ]; then
+              # Same day, increment the build number
+              NEW_PATCH=$((EXISTING_PATCH + 1))
+              VERSION="${YEAR}.${MONTH}.${NEW_PATCH}"
             else
-              BUILD_NUM=$((BUILD_NUM + 1))
+              # Different day, start fresh with this day's base
+              VERSION="${YEAR}.${MONTH}.${BASE_PATCH}"
             fi
-            VERSION="${BASE_VERSION}.${BUILD_NUM}"
           fi
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -159,23 +168,27 @@ jobs:
       - name: Generate version (same logic as build)
         id: get_version
         run: |
+          # Same logic as build job - encode build number into patch version
           YEAR=$(date +'%y')
           MONTH=$(date +'%-m')
           DAY=$(date +'%-d')
-          BASE_VERSION="${YEAR}.${MONTH}.${DAY}"
+          BASE_PATCH=$((DAY * 100))
           
-          EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${BASE_VERSION}" | sort -V | tail -1 || echo "")
+          YEAR_MONTH_PREFIX="${YEAR}.${MONTH}."
+          EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${YEAR_MONTH_PREFIX}" | sort -V | tail -1 || echo "")
           
           if [ -z "$EXISTING" ]; then
-            VERSION="$BASE_VERSION"
+            VERSION="${YEAR}.${MONTH}.${BASE_PATCH}"
           else
-            BUILD_NUM=$(echo "$EXISTING" | sed "s/v${BASE_VERSION}\\.*//" | grep -o '[0-9]*$' || echo "0")
-            if [ -z "$BUILD_NUM" ]; then
-              BUILD_NUM=1
+            EXISTING_PATCH=$(echo "$EXISTING" | sed "s/v${YEAR_MONTH_PREFIX}//" | grep -o '^[0-9]*' || echo "0")
+            EXISTING_DAY=$((EXISTING_PATCH / 100))
+            
+            if [ "$EXISTING_DAY" -eq "$DAY" ]; then
+              NEW_PATCH=$((EXISTING_PATCH + 1))
+              VERSION="${YEAR}.${MONTH}.${NEW_PATCH}"
             else
-              BUILD_NUM=$((BUILD_NUM + 1))
+              VERSION="${YEAR}.${MONTH}.${BASE_PATCH}"
             fi
-            VERSION="${BASE_VERSION}.${BUILD_NUM}"
           fi
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
