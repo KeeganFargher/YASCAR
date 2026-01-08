@@ -42,7 +42,7 @@ export default {
         },
         'bl-gray': {
           DEFAULT: '#3A3A4A',
-          light: '#5A5A6A',
+          light: '#C0C0D0',
           dark: '#2A2A3A',
         },
         'bl-green': '#22C55E',

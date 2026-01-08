@@ -1,4 +1,4 @@
-import { CodesSection } from './components/CodesSection';
+
 import { useDownloadLinks } from './hooks/useDownloadLinks';
 import appIcon from './assets/icon.png';
 
@@ -32,7 +32,7 @@ function App() {
                   YASCAR
                 </span>
                 <span className="text-[10px] text-bl-gray-light uppercase tracking-wider leading-none hidden md:block">
-                  Shift Code Auto Redeemer
+                  Yet Another Shift Code Auto Redeemer
                 </span>
               </div>
             </a>
@@ -40,8 +40,8 @@ function App() {
               <a href="#features" className="font-display text-sm tracking-wider text-bl-gray-light hover:text-bl-yellow transition-colors">
                 FEATURES
               </a>
-              <a href="#latest-codes" className="font-display text-sm tracking-wider text-bl-gray-light hover:text-bl-yellow transition-colors">
-                CODES
+              <a href="https://github.com/KeeganFargher/YASCAR" target="_blank" rel="noopener noreferrer" className="font-display text-sm tracking-wider text-bl-gray-light hover:text-bl-yellow transition-colors">
+                GITHUB
               </a>
               <a href="#games" className="font-display text-sm tracking-wider text-bl-gray-light hover:text-bl-yellow transition-colors">
                 GAMES
@@ -61,11 +61,7 @@ function App() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left column - Text */}
               <div className="animate-in fade-in slide-in-from-bottom">
-                <div className="inline-block px-4 py-1 bg-bl-yellow/10 border border-bl-yellow/30 mb-6">
-                  <span className="font-display text-sm tracking-widest text-bl-yellow">
-                    // ECHO-NET TRANSMISSION
-                  </span>
-                </div>
+
                 <h1 className="text-5xl md:text-7xl font-display text-white mb-6 leading-tight text-cel">
                   NEVER MISS A{' '}
                   <span className="text-bl-yellow">SHIFT CODE</span>{' '}
@@ -182,8 +178,7 @@ function App() {
           </div>
         </section>
 
-        {/* Latest Codes Section */}
-        <CodesSection />
+
 
         {/* Games Section */}
         <section id="games" className="py-32 bg-bl-black-light relative">
@@ -283,9 +278,11 @@ function App() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-bl-yellow flex items-center justify-center border-2 border-black text-black font-display text-sm">
-                Y
-              </div>
+              <img
+                src={appIcon}
+                alt="YASCAR"
+                className="w-8 h-8 rounded-sm border border-bl-yellow object-cover"
+              />
               <span className="font-display text-lg tracking-widest text-white">
                 YASCAR
               </span>
