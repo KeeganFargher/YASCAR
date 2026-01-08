@@ -9,6 +9,7 @@ import {
     RedemptionResult,
     RedemptionForm,
     ThrottleConfig,
+    ShiftClientConfig,
     DEFAULT_THROTTLE,
 } from "./types";
 
@@ -30,9 +31,16 @@ export class ShiftClient {
     private session: ShiftSession | null = null;
     private lastRequestTime = 0;
     private throttle: ThrottleConfig;
+    private fetch: typeof fetch;
 
-    constructor(throttle: ThrottleConfig = DEFAULT_THROTTLE) {
-        this.throttle = throttle;
+    constructor(config: ShiftClientConfig | ThrottleConfig = {}) { // Backward compatibility
+        if ('requestDelay' in config) {
+            this.throttle = config;
+            this.fetch = globalThis.fetch;
+        } else {
+            this.throttle = config.throttle || DEFAULT_THROTTLE;
+            this.fetch = config.fetch || globalThis.fetch;
+        }
     }
 
     /**
@@ -112,7 +120,7 @@ export class ShiftClient {
     async login(email: string, password: string): Promise<LoginResult> {
         try {
             // Step 1: Get the home page to get CSRF tokens and initial cookies
-            const homeResponse = await fetch(`${SHIFT_BASE_URL}/home`, {
+            const homeResponse = await this.fetch(`${SHIFT_BASE_URL}/home`, {
                 headers: DEFAULT_HEADERS,
             });
 
@@ -141,7 +149,7 @@ export class ShiftClient {
                 commit: "SIGN IN",
             });
 
-            const loginResponse = await fetch(`${SHIFT_BASE_URL}/sessions`, {
+            const loginResponse = await this.fetch(`${SHIFT_BASE_URL}/sessions`, {
                 method: "POST",
                 headers: {
                     ...DEFAULT_HEADERS,
@@ -156,7 +164,7 @@ export class ShiftClient {
 
             cookies = this.parseCookies(loginResponse.headers, cookies);
 
-            // Check for successful redirect to /account
+            // Check for successful redirect to /account (standard fetch behavior)
             if (
                 loginResponse.status === 302 &&
                 loginResponse.headers.get("location")?.includes("/account")
@@ -170,11 +178,31 @@ export class ShiftClient {
                 return { success: true, session };
             }
 
-            // Check for error in response body
+            // Handle 200 response - could be error page or success if redirect was followed
             if (loginResponse.status === 200) {
                 const body = await loginResponse.text();
+
+                // Check for login failures
                 if (body.includes("Invalid email or password")) {
                     return { success: false, error: "Invalid email or password" };
+                }
+
+                // Check for success indicators (Tauri HTTP plugin may auto-follow redirects)
+                // These indicate we're on the account/rewards page after successful login
+                if (
+                    body.includes("Sign Out") ||
+                    body.includes("My Rewards") ||
+                    body.includes('href="/account"') ||
+                    body.includes("CODE HISTORY") ||
+                    body.includes("ACCOUNT DETAILS")
+                ) {
+                    const session: ShiftSession = {
+                        cookies,
+                        createdAt: new Date().toISOString(),
+                        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                    };
+                    this.session = session;
+                    return { success: true, session };
                 }
             }
 
@@ -195,7 +223,7 @@ export class ShiftClient {
         await this.waitForThrottle();
 
         try {
-            const response = await fetch(
+            const response = await this.fetch(
                 `${SHIFT_BASE_URL}/entitlement_offer_codes?code=${code}`,
                 {
                     headers: {
@@ -287,7 +315,7 @@ export class ShiftClient {
                 commit: `Redeem for ${form.platform}`,
             });
 
-            const response = await fetch(`${SHIFT_BASE_URL}/code_redemptions`, {
+            const response = await this.fetch(`${SHIFT_BASE_URL}/code_redemptions`, {
                 method: "POST",
                 headers: {
                     ...DEFAULT_HEADERS,

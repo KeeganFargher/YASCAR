@@ -16,6 +16,10 @@ export interface UserConfig {
     skipExpiringWithinDays: number;
     /** Request throttle mode */
     throttleMode: "conservative" | "moderate" | "aggressive";
+    /** Start application on system boot */
+    startOnBoot: boolean;
+    /** Send notifications on auto-redeem events */
+    notifyOnAutoRedeem: boolean;
 }
 
 /**
@@ -28,6 +32,8 @@ export const DEFAULT_CONFIG: UserConfig = {
     checkIntervalMinutes: 60,
     skipExpiringWithinDays: 3,
     throttleMode: "conservative",
+    startOnBoot: false,
+    notifyOnAutoRedeem: false,
 };
 
 /**
@@ -60,6 +66,16 @@ export interface RedeemedCodeRecord {
     game: string;
     platform: string;
     success: boolean;
+}
+
+/**
+ * Failed code record for tracking unsuccessful redemption attempts
+ */
+export interface FailedCodeRecord {
+    code: string;
+    failedAt: string;
+    reason: string;
+    attemptCount: number;
 }
 
 /**

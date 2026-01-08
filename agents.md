@@ -265,6 +265,8 @@ The package defines abstract interfaces that can be implemented for different en
 
 - `ConfigStorage` - For user preferences
 - `RedeemedCodesStorage` - For tracking redeemed codes
+- `FailedCodeRecord` - For tracking unsuccessful redemption attempts (includes reason and attempt count)
+
 
 ---
 
@@ -402,6 +404,13 @@ getRedeemedCodes(): Promise<string[]>
 addRedeemedCode(code: string): Promise<void>
 getRedemptionHistory(): Promise<RedeemedCodeRecord[]>
 addToHistory(record: RedeemedCodeRecord): Promise<void>
+
+// Failure tracking
+getFailedCodes(): Promise<FailedCodeRecord[]>
+addFailedCode(code: string, reason: string): Promise<void>
+removeFailedCode(code: string): Promise<void>
+isCodeFailed(code: string): Promise<boolean>
+
 ```
 
 #### Pages
@@ -476,10 +485,12 @@ A simple marketing landing page. Lower priority than other apps.
    b. Parse redemption forms
    c. Submit redemption (POST /code_redemptions)
    d. Handle rate limiting
-   e. Log result
+   e. Log result (Succeed: to history | Fail: to failed codes)
          │
          ▼
-6. Update local redeemed codes list
+6. Update local tracking (redeemed or failed lists)
+7. Display status with visual indicators and retry options
+
 ```
 
 ---
@@ -493,6 +504,13 @@ A simple marketing landing page. Lower priority than other apps.
 - **Imports:** Use `@yascar/*` workspace imports
 - **Error Handling:** Always wrap external API calls in try/catch
 - **Logging:** Use `console.log` with prefixes (e.g., `[scraper]`, `[orchestrator]`)
+
+### Design Philosophy
+
+- **Aesthetic:** Use the Borderlands color palette and font stack, but keep the layout modern and usable.
+- **Copywriting:** Prioritize clarity over "in-universe" roleplay. Avoid phrases like "Secure Channel", "Terminal ID", or "Encrypted Uplink" in functional areas (Login, Settings, etc.).
+- **Security:** Be explicitly transparent about data handling. Users must know their credentials are safe and local.
+
 
 ### Adding a New Scraper
 

@@ -18,10 +18,27 @@ export default {
           light: '#FF8C3A',
           dark: '#CC5500',
         },
+        'bl-legendary': {
+          DEFAULT: '#FF8400',
+        },
+        'bl-purple': {
+          DEFAULT: '#A335EE',
+          light: '#B65AF2',
+          dark: '#8210D8',
+        },
+        'bl-blue': {
+          DEFAULT: '#0070DD',
+          light: '#1E90FF',
+          dark: '#0055AA',
+        },
+        'bl-magenta': {
+          DEFAULT: '#FF00FF',
+        },
         'bl-black': {
           DEFAULT: '#0A0A0F',
           light: '#1A1A25',
           card: '#12121A',
+          hud: 'rgba(5, 5, 10, 0.9)',
         },
         'bl-gray': {
           DEFAULT: '#3A3A4A',
@@ -30,7 +47,6 @@ export default {
         },
         'bl-green': '#22C55E',
         'bl-red': '#EF4444',
-        'bl-blue': '#3B82F6',
       },
       fontFamily: {
         'display': ['"Bebas Neue"', 'Impact', 'sans-serif'],
@@ -39,6 +55,7 @@ export default {
       boxShadow: {
         'glow-yellow': '0 0 20px rgba(245, 197, 24, 0.3)',
         'glow-orange': '0 0 20px rgba(255, 107, 0, 0.3)',
+        'glow-legendary': '0 0 30px rgba(255, 132, 0, 0.5)',
         'cel': '4px 4px 0px rgba(0, 0, 0, 0.8)',
         'cel-sm': '2px 2px 0px rgba(0, 0, 0, 0.8)',
       },
@@ -47,12 +64,26 @@ export default {
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'scanline': 'scanline 8s linear infinite',
+        'glitch': 'glitch 0.3s ease-in-out',
+        'spin-gear': 'spin 4s linear infinite',
       },
       keyframes: {
         'pulse-glow': {
           '0%, 100%': { boxShadow: '0 0 20px rgba(245, 197, 24, 0.3)' },
           '50%': { boxShadow: '0 0 40px rgba(245, 197, 24, 0.5)' },
         },
+        'scanline': {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100%)' },
+        },
+        'glitch': {
+          '0%, 100%': { transform: 'translate(0)' },
+          '20%': { transform: 'translate(-2px, 2px)' },
+          '40%': { transform: 'translate(-2px, -2px)' },
+          '60%': { transform: 'translate(2px, 2px)' },
+          '80%': { transform: 'translate(2px, -2px)' },
+        }
       },
     },
   },

@@ -1,114 +1,166 @@
-:root {
-  /* Colors - Dark theme with gold accent */
-  --color-bg: #0a0a0f;
-  --color-bg-secondary: #12121a;
-  --color-surface: #1a1a25;
-  --color-surface-hover: #252535;
-  --color-border: #2a2a3a;
-  --color-text: #f5f5f7;
-  --color-text-muted: #8888a0;
-  --color-accent: #f5c518;
-  --color-accent-hover: #ffd54a;
-  --color-success: #22c55e;
-  --color-error: #ef4444;
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
 
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-
-  /* Border radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-glow: 0 0 40px rgba(245, 197, 24, 0.15);
+  body {
+    @apply bg-bl-black text-white font-body;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-display uppercase tracking-wider;
+  }
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Component styles */
+@layer components {
+  /* Borderlands-style button */
+  .btn-bl {
+    @apply relative px-6 py-3 font-display text-lg uppercase tracking-wider
+           border-3 border-black transition-all duration-200
+           shadow-cel hover:-translate-y-0.5 active:translate-y-0 active:shadow-cel-sm;
+    clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+  }
+  
+  .btn-bl-primary {
+    @apply btn-bl bg-bl-yellow text-black hover:bg-bl-yellow-light;
+  }
+  
+  .btn-bl-secondary {
+    @apply btn-bl bg-bl-gray text-white border-bl-gray-dark hover:bg-bl-gray-light;
+  }
+
+  .btn-bl-legendary {
+    @apply btn-bl bg-[#FF8400] text-black hover:brightness-110;
+    box-shadow: 0 0 30px rgba(255, 132, 0, 0.5);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .btn-bl-danger {
+    @apply btn-bl bg-bl-red text-white hover:bg-red-400;
+  }
+  
+  /* Cards */
+  .card-bl {
+    @apply bg-bl-black-card border-3 border-bl-gray-dark p-6
+           shadow-cel relative overflow-hidden;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .card-bl::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 bg-bl-yellow/30;
+  }
+
+  .card-bl-asymmetric {
+    @apply card-bl;
+    clip-path: polygon(0 0, 97% 0, 100% 4%, 100% 100%, 3% 100%, 0 96%);
+  }
+  
+  /* CRT Effects */
+  .crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    ), linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.02),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.02)
+    );
+    background-size: 100% 4px, 3px 100%;
+  }
+
+  .scanline {
+    width: 100%;
+    height: 100px;
+    z-index: 9998;
+    background: linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    opacity: 0.1;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline 8s linear infinite;
+  }
+  
+  /* Cel-shaded text effect */
+  .text-cel {
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), -1px -1px 0px rgba(0, 0, 0, 0.8);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  /* Noise texture overlay */
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
 }
 
-html {
-  font-size: 16px;
-  scroll-behavior: smooth;
-}
+/* Custom Animations */
+@layer utilities {
+  .animate-in {
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .fade-in {
+    animation-name: fade-in;
+  }
+  
+  .slide-in-from-bottom {
+    animation-name: slide-in-from-bottom;
+  }
 
-body {
-  font-family: var(--font-sans);
-  background: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.6;
-  min-height: 100vh;
-}
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+  @keyframes slide-in-from-bottom {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
 
-a {
-  color: var(--color-accent);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
+  .clip-polygon-hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
 
-a:hover {
-  color: var(--color-accent-hover);
-}
-
-/* Utility classes */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-6);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background: var(--color-accent);
-  color: var(--color-bg);
-}
-
-.btn-primary:hover {
-  background: var(--color-accent-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow);
-}
-
-.btn-secondary {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn-secondary:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-accent);
+  /* Staggered animation delays */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
 }

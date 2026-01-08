@@ -1,0 +1,132 @@
+name: Release Desktop App
+
+on:
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: 'Create as draft release (for testing)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            rust_target: 'aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            rust_target: 'x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            rust_target: ''
+          - platform: 'windows-latest'
+            args: ''
+            rust_target: ''
+
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate date-based version
+        id: get_version
+        shell: bash
+        run: |
+          # Generate base version from date (YYYY.MM.DD)
+          BASE_VERSION=$(date +'%Y.%m.%d')
+          
+          # Check for existing releases with same date prefix
+          EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${BASE_VERSION}" | sort -V | tail -1 || echo "")
+          
+          if [ -z "$EXISTING" ]; then
+            VERSION="$BASE_VERSION"
+          else
+            # Extract build number and increment
+            BUILD_NUM=$(echo "$EXISTING" | sed "s/v${BASE_VERSION}\.\?//" | grep -o '[0-9]*$' || echo "0")
+            if [ -z "$BUILD_NUM" ]; then
+              BUILD_NUM=1
+            else
+              BUILD_NUM=$((BUILD_NUM + 1))
+            fi
+            VERSION="${BASE_VERSION}.${BUILD_NUM}"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update version in config files
+        shell: bash
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          
+          # Update tauri.conf.json
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('./apps/desktop/src-tauri/tauri.conf.json', 'utf8'));
+            config.version = '$VERSION';
+            fs.writeFileSync('./apps/desktop/src-tauri/tauri.conf.json', JSON.stringify(config, null, 2) + '\n');
+          "
+          
+          # Update package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('./apps/desktop/package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('./apps/desktop/package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          
+          echo "Updated config files to version $VERSION"
+
+      - name: Build and Release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tagName: v${{ steps.get_version.outputs.version }}
+          releaseName: 'YASCAR v${{ steps.get_version.outputs.version }}'
+          releaseBody: |
+            ## YASCAR Desktop App v${{ steps.get_version.outputs.version }}
+            
+            Download the appropriate installer for your platform:
+            - **Windows**: `.msi` or `.exe` installer
+            - **macOS**: `.dmg` disk image
+            - **Linux**: `.deb`, `.rpm`, or `.AppImage`
+            
+            See the [documentation](https://github.com/KeeganFargher/YASCAR) for setup instructions.
+          releaseDraft: ${{ inputs.draft }}
+          prerelease: false
+          args: ${{ matrix.args }}
+
+

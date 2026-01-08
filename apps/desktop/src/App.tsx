@@ -5,12 +5,24 @@ import { DashboardPage } from './pages/DashboardPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LogPage } from './pages/LogPage';
 import { Layout } from './components/Layout';
-import { loadSession, clearSession, saveSession } from './lib/store';
+import { loadSession, clearAllData, saveSession } from './lib/store';
 import { setClientSession, ShiftSession } from './lib/shift';
+
+import { resetRedemptionProgress } from './lib/redemptionEvents';
+import { clearClientSession } from './lib/shift';
+
+import { useAutoRedeem } from './hooks/useAutoRedeem';
+import { useUpdater } from './hooks/useUpdater';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Activate auto-redeem background service
+  useAutoRedeem();
+
+  // Check for updates on startup
+  useUpdater();
 
   useEffect(() => {
     checkSession();
@@ -42,10 +54,12 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await clearSession();
+      await clearAllData();
+      resetRedemptionProgress();
+      clearClientSession();
       setIsAuthenticated(false);
     } catch (error) {
-      console.error('Failed to clear session:', error);
+      console.error('Failed to clear data:', error);
     }
   };
 

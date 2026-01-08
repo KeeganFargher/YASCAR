@@ -12,13 +12,20 @@
   "app": {
     "windows": [
       {
-        "title": "@yascar/desktop",
-        "width": 800,
-        "height": 600,
+        "label": "main",
+        "title": "YASCAR",
+        "width": 1280,
+        "height": 720,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "visible": true
       }
     ],
+    "trayIcon": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": false,
+      "id": "main-tray"
+    },
     "security": {
       "csp": null
     }
@@ -33,5 +40,12 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/KeeganFargher/YASCAR/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

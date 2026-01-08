@@ -92,6 +92,11 @@ export interface ThrottleConfig {
     rateLimitDelay: number;
 }
 
+export interface ShiftClientConfig {
+    throttle?: ThrottleConfig;
+    fetch?: typeof fetch;
+}
+
 export const DEFAULT_THROTTLE: ThrottleConfig = {
     requestDelay: 3000,
     rateLimitDelay: 30000,

@@ -25,6 +25,7 @@
     @apply relative px-6 py-3 font-display text-lg uppercase tracking-wider
            border-3 border-black transition-all duration-200
            shadow-cel hover:-translate-y-0.5 active:translate-y-0 active:shadow-cel-sm;
+    clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
   }
   
   .btn-bl-primary {
@@ -33,6 +34,12 @@
   
   .btn-bl-secondary {
     @apply btn-bl bg-bl-gray text-white border-bl-gray-dark hover:bg-bl-gray-light;
+  }
+
+  .btn-bl-legendary {
+    @apply btn-bl bg-[#FF8400] text-black hover:brightness-110;
+    box-shadow: 0 0 30px rgba(255, 132, 0, 0.5);
+    animation: pulse-glow 2s ease-in-out infinite;
   }
   
   .btn-bl-danger {
@@ -45,35 +52,73 @@
            text-white placeholder-bl-gray-light font-body
            focus:border-bl-yellow focus:outline-none focus:shadow-glow-yellow
            transition-all duration-200;
+    clip-path: polygon(0% 0%, 98% 0%, 100% 20%, 100% 100%, 2% 100%, 0% 80%);
   }
   
   /* Cards */
   .card-bl {
     @apply bg-bl-black-card border-3 border-bl-gray-dark p-6
-           shadow-cel;
+           shadow-cel relative overflow-hidden;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .card-bl::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 bg-bl-yellow/30;
+  }
+
+  .card-bl-asymmetric {
+    @apply card-bl;
+    clip-path: polygon(0 0, 97% 0, 100% 4%, 100% 100%, 3% 100%, 0 96%);
+  }
+  
+  /* CRT Effects */
+  .crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    ), linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.02),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.02)
+    );
+    background-size: 100% 4px, 3px 100%;
+  }
+
+  .scanline {
+    width: 100%;
+    height: 100px;
+    z-index: 9998;
+    background: linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    opacity: 0.1;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline 8s linear infinite;
   }
   
   /* Cel-shaded text effect */
   .text-cel {
-    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8);
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), -1px -1px 0px rgba(0, 0, 0, 0.8);
   }
-  
-  /* Status badges */
-  .badge-bl {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold uppercase
-           border-2 border-black shadow-cel-sm;
-  }
-  
-  .badge-success {
-    @apply badge-bl bg-bl-green text-black;
-  }
-  
-  .badge-warning {
-    @apply badge-bl bg-bl-orange text-black;
-  }
-  
-  .badge-error {
-    @apply badge-bl bg-bl-red text-white;
+
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
   }
   
   /* Scrollbar styling */
@@ -102,4 +147,35 @@
 /* Make interactive elements not draggable */
 button, input, a, [role="button"] {
   -webkit-app-region: no-drag;
+}
+
+/* Custom Animations */
+@layer utilities {
+  .animate-in {
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .fade-in {
+    animation-name: fade-in;
+  }
+  
+  .slide-in-from-bottom {
+    animation-name: slide-in-from-bottom;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-in-from-bottom {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .clip-polygon-hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
 }
