@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { loginToShift, ShiftSession } from '../lib/shift';
-import logo from '../assets/logo2.jpg';
+import { getUserMessage, isNetworkError } from '../lib/errors';
+import { useAppStore } from '../stores/useAppStore';
+import logo from '../assets/logo.png';
 import { Mail, Key, AlertTriangle, Loader2, Shield, ChevronRight } from 'lucide-react';
 
 interface LoginPageProps {
@@ -16,6 +18,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Check network status first
+    if (!useAppStore.getState().isOnline) {
+      setError('You appear to be offline. Please check your internet connection.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -24,10 +33,22 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       if (result.success && result.session) {
         onLogin(result.session);
       } else {
-        setError(result.error || 'Authentication Failed');
+        // Provide more helpful error messages
+        const errorMsg = result.error || 'Authentication Failed';
+        if (errorMsg.includes('Invalid email or password')) {
+          setError('Invalid email or password. Please check your credentials.');
+        } else if (errorMsg.includes('Failed to load')) {
+          setError('Unable to connect to SHiFT servers. Please try again later.');
+        } else {
+          setError(errorMsg);
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Connection Error');
+      if (isNetworkError(err)) {
+        setError('Unable to connect. Please check your internet connection.');
+      } else {
+        setError(getUserMessage(err));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -45,36 +66,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-[400px] h-[10px] bg-bl-gray-dark opacity-10 -rotate-45" />
       </div>
 
-      {/* Draggable Title Bar */}
-      <div data-tauri-drag-region className="h-8 bg-black/50 border-b border-bl-gray-dark z-50 flex items-center px-4 justify-between">
-        <div className="flex gap-2">
-          <div className="w-2 h-2 rounded-full bg-bl-red animate-pulse" />
-        </div>
-      </div>
-
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-5 relative z-10 animate-in fade-in duration-700">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center p-8 relative z-10 animate-in fade-in duration-700">
+        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
 
-          {/* Header Brand */}
-          <div className="text-center mb-8 relative">
-            <div className="inline-block relative group">
-              <img
-                src={logo}
-                alt="YASCAR"
-                className="h-40 w-auto object-contain transform -rotate-2 hover:rotate-0 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(247,201,72,0.3)]"
-              />
-              <span className="absolute -bottom-2 -right-4 text-bl-yellow text-sm font-bold bg-bl-black px-2 border border-bl-yellow transform skew-x-12 shadow-lg">
-                VER 2.0
-              </span>
-            </div>
-            <p className="text-bl-gray-light mt-4 text-sm font-mono tracking-[0.15em] uppercase">
-              Yet Another Shift Code Auto Redeemer
-            </p>
-          </div>
-
-          {/* Login Terminal */}
-          <div className="card-bl shadow-[0_0_50px_rgba(245,197,24,0.1)] backdrop-blur-sm">
+          {/* Login Terminal (Left Side) */}
+          <div className="card-bl shadow-[0_0_50px_rgba(245,197,24,0.1)] backdrop-blur-sm order-2 md:order-1">
             <div className="border-b border-bl-gray-dark pb-4 mb-6 text-center">
               <h2 className="font-display text-3xl text-white tracking-widest">
                 SHiFT LOGIN
@@ -99,7 +96,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     disabled={isLoading}
                     autoComplete="email"
                   />
-                  <span className="absolute left-3 top-3 text-bl-gray-light group-focus-within:text-bl-yellow transition-colors">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-bl-gray-light group-focus-within:text-bl-yellow transition-colors">
                     <Mail className="w-4 h-4" />
                   </span>
                 </div>
@@ -121,7 +118,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     required
                     disabled={isLoading}
                   />
-                  <span className="absolute left-3 top-3 text-bl-gray-light group-focus-within:text-bl-yellow transition-colors">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-bl-gray-light group-focus-within:text-bl-yellow transition-colors">
                     <Key className="w-4 h-4" />
                   </span>
                 </div>
@@ -178,15 +175,21 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   rel="noopener noreferrer" className="text-xs text-white/90 leading-relaxed font-regular">View Source Code Here</a>
               </div>
 
-              <a
-                href="https://shift.gearboxsoftware.com/home"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-xs font-bold text-bl-gray hover:text-bl-yellow transition-colors uppercase tracking-wide border-b border-transparent hover:border-bl-yellow"
-              >
-                Create New SHiFT Account
-              </a>
             </div>
+          </div>
+
+          {/* Header Brand (Right Side) */}
+          <div className="text-center relative order-1 md:order-2 flex flex-col items-center justify-center">
+            <div className="inline-block relative group">
+              <img
+                src={logo}
+                alt="YASCAR"
+                className="w-full max-w-[400px] h-auto object-contain transform -rotate-2 hover:rotate-0 transition-transform duration-300 mb-4"
+              />
+            </div>
+            <p className="text-bl-gray-light mt-4 text-sm font-mono tracking-[0.15em] uppercase max-w-sm mx-auto leading-relaxed">
+              Yet Another Shift Code<br />Auto Redeemer
+            </p>
           </div>
         </div>
       </div>

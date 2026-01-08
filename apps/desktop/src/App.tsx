@@ -1,22 +1,26 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LogPage } from './pages/LogPage';
 import { Layout } from './components/Layout';
-import { loadSession, clearAllData, saveSession } from './lib/store';
-import { setClientSession, ShiftSession } from './lib/shift';
-
-import { resetRedemptionProgress } from './lib/redemptionEvents';
-import { clearClientSession } from './lib/shift';
+import { SetupWizard } from './components/SetupWizard';
+import { useAppStore, selectIsAuthenticated, selectIsAuthLoading } from './stores/useAppStore';
+import { hasCompletedSetup } from './lib/store';
+import { ShiftSession } from '@yascar/shift-client';
 
 import { useAutoRedeem } from './hooks/useAutoRedeem';
 import { useUpdater } from './hooks/useUpdater';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const isAuthenticated = useAppStore(selectIsAuthenticated);
+  const isAuthLoading = useAppStore(selectIsAuthLoading);
+  const initSession = useAppStore(state => state.initSession);
+  const login = useAppStore(state => state.login);
+  const logout = useAppStore(state => state.logout);
+
+  const [isSetupComplete, setIsSetupComplete] = useState<boolean | null>(null);
 
   // Activate auto-redeem background service
   useAutoRedeem();
@@ -25,45 +29,24 @@ function App() {
   useUpdater();
 
   useEffect(() => {
-    checkSession();
-  }, []);
-
-  const checkSession = async () => {
-    try {
-      const session = await loadSession();
-      if (session) {
-        setClientSession(session);
-        setIsAuthenticated(true);
-      }
-    } catch (error) {
-      console.error('Failed to load session:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    initSession();
+    // Check setup status
+    hasCompletedSetup().then(setIsSetupComplete);
+  }, [initSession]);
 
   const handleLogin = async (session: ShiftSession) => {
-    try {
-      await saveSession(session);
-      setClientSession(session);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Failed to save session:', error);
-    }
+    await login(session);
+    // Re-check setup status after login
+    const completed = await hasCompletedSetup();
+    setIsSetupComplete(completed);
   };
 
   const handleLogout = async () => {
-    try {
-      await clearAllData();
-      resetRedemptionProgress();
-      clearClientSession();
-      setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Failed to clear data:', error);
-    }
+    await logout();
+    setIsSetupComplete(false);
   };
 
-  if (isLoading) {
+  if (isAuthLoading || isSetupComplete === null) {
     return (
       <div className="min-h-screen bg-bl-black flex items-center justify-center">
         <div className="text-bl-yellow text-2xl font-display animate-pulse">
@@ -75,6 +58,10 @@ function App() {
 
   if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} />;
+  }
+
+  if (!isSetupComplete) {
+    return <SetupWizard onComplete={() => setIsSetupComplete(true)} />;
   }
 
   return (
@@ -90,3 +77,4 @@ function App() {
 }
 
 export default App;
+

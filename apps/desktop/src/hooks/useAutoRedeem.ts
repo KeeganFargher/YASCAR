@@ -3,8 +3,8 @@ import { loadConfig } from '../lib/store';
 import { getShiftClient } from '../lib/shift';
 import { fetchAvailableCodes } from '../lib/api';
 import { redeemShiftCode } from '../lib/redemption';
-import { isRedemptionInProgress, setRedemptionInProgress } from '../lib/redemptionLock';
-import { emitRedemptionProgress } from '../lib/redemptionEvents';
+import { useAppStore } from '../stores/useAppStore';
+import { getUserMessage } from '../lib/errors';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 
 async function notify(title: string, body: string) {
@@ -30,9 +30,17 @@ export function useAutoRedeem() {
 
     useEffect(() => {
         const runAutoRedeem = async () => {
+            const store = useAppStore.getState();
+
             // Skip if already running or manual redemption in progress
-            if (isRunning.current || isRedemptionInProgress()) {
+            if (isRunning.current || store.isRedemptionInProgress()) {
                 console.log('[AutoRedeem] Skipped - redemption already in progress');
+                return;
+            }
+
+            // Check network status before starting
+            if (!store.isOnline) {
+                console.log('[AutoRedeem] Skipped - offline');
                 return;
             }
 
@@ -45,10 +53,19 @@ export function useAutoRedeem() {
 
                 console.log('[AutoRedeem] Starting check...');
                 isRunning.current = true;
-                setRedemptionInProgress(true);
 
                 // Fetch codes
-                const { available } = await fetchAvailableCodes(config.games);
+                let available;
+                try {
+                    const result = await fetchAvailableCodes(config.games);
+                    available = result.available;
+                } catch (fetchErr) {
+                    console.error('[AutoRedeem] Failed to fetch codes:', fetchErr);
+                    if (config.notifyOnAutoRedeem) {
+                        await notify('YASCAR Auto-Redeem Error', `Failed to check for new codes: ${getUserMessage(fetchErr)}`);
+                    }
+                    return;
+                }
 
                 if (available.length === 0) {
                     console.log('[AutoRedeem] No new codes found.');
@@ -57,17 +74,14 @@ export function useAutoRedeem() {
 
                 console.log(`[AutoRedeem] Found ${available.length} codes to redeem.`);
 
-                console.log(`[AutoRedeem] Found ${available.length} codes to redeem.`);
-
-                // Notify start
                 if (config.notifyOnAutoRedeem) {
                     await notify('YASCAR Auto-Redeem', `Starting redemption of ${available.length} Shift codes...`);
                 }
 
                 const results: { code: string; success: boolean; message: string }[] = [];
 
-                // Emit initial progress
-                emitRedemptionProgress({
+                // Set initial progress using store
+                store.setRedemptionProgress({
                     current: 0,
                     total: available.length,
                     status: 'checking',
@@ -78,8 +92,15 @@ export function useAutoRedeem() {
                 for (let i = 0; i < available.length; i++) {
                     const code = available[i];
 
-                    // Emit progress update
-                    emitRedemptionProgress({
+                    // Check network before each redemption
+                    if (!useAppStore.getState().isOnline) {
+                        console.log('[AutoRedeem] Connection lost, stopping...');
+                        results.push({ code: code.code, success: false, message: 'Connection lost' });
+                        break;
+                    }
+
+                    // Update progress using store
+                    store.setRedemptionProgress({
                         current: i + 1,
                         total: available.length,
                         currentCode: code.code,
@@ -94,20 +115,28 @@ export function useAutoRedeem() {
                         results.push({ code: code.code, ...result });
                     } catch (err) {
                         console.error(`[AutoRedeem] Error redeeming ${code.code}:`, err);
-                        const errMsg = err instanceof Error ? err.message : 'Unknown error';
+                        const errMsg = getUserMessage(err);
                         results.push({ code: code.code, success: false, message: errMsg });
                     }
                 }
 
-
                 // Notify complete
                 if (config.notifyOnAutoRedeem) {
                     const successCount = results.filter(r => r.success).length;
-                    await notify('YASCAR Auto-Redeem Complete', `Redeemed ${successCount}/${available.length} codes successfully.`);
+                    const failCount = results.filter(r => !r.success).length;
+
+                    if (failCount > 0) {
+                        await notify(
+                            'YASCAR Auto-Redeem Complete',
+                            `Redeemed ${successCount}/${available.length} codes. ${failCount} failed - check the app for details.`
+                        );
+                    } else {
+                        await notify('YASCAR Auto-Redeem Complete', `Successfully redeemed ${successCount} codes!`);
+                    }
                 }
 
-                // Emit completion
-                emitRedemptionProgress({
+                // Set completion using store
+                store.setRedemptionProgress({
                     current: available.length,
                     total: available.length,
                     status: 'done',
@@ -117,14 +146,29 @@ export function useAutoRedeem() {
                 console.log('[AutoRedeem] Cycle complete.');
             } catch (err) {
                 console.error('[AutoRedeem] Error in auto-redeem cycle:', err);
+
+                // Set error status using store
+                useAppStore.getState().setRedemptionProgress({
+                    current: 0,
+                    total: 0,
+                    status: 'error',
+                    results: [{ code: '', success: false, message: getUserMessage(err) }],
+                });
+
+                try {
+                    const config = await loadConfig();
+                    if (config.notifyOnAutoRedeem) {
+                        await notify('YASCAR Auto-Redeem Error', `An unexpected error occurred: ${getUserMessage(err)}`);
+                    }
+                } catch {
+                    // Ignore notification errors
+                }
             } finally {
                 isRunning.current = false;
-                setRedemptionInProgress(false);
             }
         };
 
         const scheduleNext = async () => {
-            // Load config to get the user's interval setting
             const config = await loadConfig();
             const intervalMs = (config.checkIntervalMinutes || 60) * 60 * 1000;
 
@@ -132,7 +176,7 @@ export function useAutoRedeem() {
 
             timeoutRef.current = setTimeout(async () => {
                 await runAutoRedeem();
-                scheduleNext(); // Schedule next after completion
+                scheduleNext();
             }, intervalMs);
         };
 
@@ -150,3 +194,4 @@ export function useAutoRedeem() {
         };
     }, []);
 }
+

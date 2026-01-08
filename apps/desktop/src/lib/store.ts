@@ -141,3 +141,16 @@ export async function clearFailedCodes(): Promise<void> {
     await store.save();
 }
 
+// ─────────────────────────────────────────────────────────────
+// Setup Wizard State
+// ─────────────────────────────────────────────────────────────
+
+export async function hasCompletedSetup(): Promise<boolean> {
+    return (await store.get<boolean>('setup_completed')) ?? false;
+}
+
+export async function setSetupCompleted(completed: boolean): Promise<void> {
+    await store.set('setup_completed', completed);
+    await store.save();
+}
+
