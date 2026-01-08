@@ -78,6 +78,11 @@ export const LIMITS = {
 } as const;
 
 /**
+ * The public API URL for fetching shift codes
+ */
+export const SHIFT_CODES_API_URL = 'https://shift.yascar-tool.com/shift-codes.json';
+
+/**
  * A batch of scraped codes to be sent to the queue
  */
 export interface ScrapedCodeBatch {
