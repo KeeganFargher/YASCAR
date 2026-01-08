@@ -3,7 +3,7 @@ name: Deploy Scraper
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'apps/scraper/**'
       - 'packages/**'
