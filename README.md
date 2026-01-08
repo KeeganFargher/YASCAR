@@ -20,23 +20,22 @@
 
 ---
 
-## 🎮 What is YASCAR?
+## What is YASCAR?
 
 **YASCAR** (**Y**et **A**nother **S**hift **C**ode **A**utomatic **R**edeemer) is a free desktop app that helps you automatically redeem SHiFT codes for your favorite Borderlands games.
 
 > **SHiFT codes** are special codes released by Gearbox that give you free in-game rewards like Golden Keys, skins, and more! The problem? They expire quickly and are scattered across social media. YASCAR solves this by automatically finding and redeeming them for you.
 
-### ✨ Features
+### Features
 
-- 🔍 **Automatic Code Discovery** — We scan multiple sources for new codes every 30 minutes
-- 🎁 **One-Click Redemption** — Redeem all available codes with a single click
-- 🎯 **Smart Filtering** — Only see codes for the games YOU play
-- 🔒 **Secure** — Your credentials never leave your computer
-- 🌐 **Cross-Platform** — Available for Windows, macOS, and Linux
+- **Automatic Code Discovery** — We scan multiple sources for new codes every 30 minutes
+- **One-Click Redemption** — Redeem all available codes with a single click
+- **Secure** — Your credentials never leave your computer
+- **Cross-Platform** — Available for Windows, macOS, and Linux
 
 ---
 
-## 📥 Download
+## Download
 
 Choose the right version for your computer:
 
@@ -81,7 +80,7 @@ Choose the right version for your computer:
 
 ---
 
-## 🎮 Supported Games
+## Supported Games
 
 | Game | Status |
 |------|--------|
@@ -90,11 +89,11 @@ Choose the right version for your computer:
 | Borderlands: The Pre-Sequel | ✅ Supported |
 | Borderlands 3 | ✅ Supported |
 | Tiny Tina's Wonderlands | ✅ Supported |
-| Borderlands 4 | ✅ Ready on launch! |
+| Borderlands 4 | ✅ Supported |
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 <details>
 <summary><strong>Is YASCAR safe to use?</strong></summary>
@@ -137,7 +136,7 @@ Some codes may have already expired or may only work for specific platforms. YAS
 
 ---
 
-## 🌟 Show Your Support
+##  Show Your Support
 
 If YASCAR helped you grab some sweet loot, consider:
 
@@ -147,7 +146,7 @@ If YASCAR helped you grab some sweet loot, consider:
 
 ---
 
-## 🔧 For Developers
+## For Developers
 
 <details>
 <summary><strong>Click to expand technical documentation</strong></summary>
