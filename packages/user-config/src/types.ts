@@ -26,9 +26,16 @@ export interface UserConfig {
  * Default configuration
  */
 export const DEFAULT_CONFIG: UserConfig = {
-    games: [GameTitle.BL3, GameTitle.WONDERLANDS],
+    games: [
+        GameTitle.BL_GOTY,
+        GameTitle.BL2,
+        GameTitle.BL_TPS,
+        GameTitle.BL3,
+        GameTitle.WONDERLANDS,
+        GameTitle.BL4,
+    ],
     platforms: [Platform.UNIVERSAL],
-    autoRedeem: false,
+    autoRedeem: true,
     checkIntervalMinutes: 60,
     skipExpiringWithinDays: 3,
     throttleMode: "conservative",

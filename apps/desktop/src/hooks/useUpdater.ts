@@ -21,6 +21,11 @@ export function useUpdater() {
     });
 
     useEffect(() => {
+        // Skip update check in dev mode
+        if (import.meta.env.DEV) {
+            console.log('[Updater] Skipping update check in dev mode');
+            return;
+        }
         checkForUpdates();
     }, []);
 
