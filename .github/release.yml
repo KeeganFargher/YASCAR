@@ -1,0 +1,31 @@
+# Configuration for GitHub's auto-generated release notes
+# See: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - "ignore-for-release"
+      - "skip-changelog"
+    authors:
+      - "dependabot"
+      - "dependabot[bot]"
+  categories:
+    - title: "🚀 New Features"
+      labels:
+        - "enhancement"
+        - "feature"
+    - title: "🐛 Bug Fixes"
+      labels:
+        - "bug"
+        - "fix"
+        - "bugfix"
+    - title: "📦 Dependencies"
+      labels:
+        - "dependencies"
+    - title: "📝 Documentation"
+      labels:
+        - "documentation"
+        - "docs"
+    - title: "🔧 Other Changes"
+      labels:
+        - "*"
