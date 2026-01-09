@@ -36,11 +36,8 @@ export function StatsCluster({
 }: StatsClusterProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div className="card-bl-asymmetric group hover:border-bl-orange transition-colors duration-300">
-        <div className="absolute top-2 right-4 font-display text-bl-gray-dark text-4xl opacity-20 group-hover:opacity-40 transition-opacity">
-          01
-        </div>
-        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">
+      <div className="card-bl-asymmetric flex flex-col items-center justify-center p-4">
+        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1 text-center">
           Total Redeemed
         </div>
         <div className="font-display text-5xl text-bl-orange text-cel">
@@ -48,11 +45,8 @@ export function StatsCluster({
         </div>
       </div>
 
-      <div className="card-bl-asymmetric group hover:border-bl-green transition-colors duration-300">
-        <div className="absolute top-2 right-4 font-display text-bl-gray-dark text-4xl opacity-20 group-hover:opacity-40 transition-opacity">
-          02
-        </div>
-        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">
+      <div className="card-bl-asymmetric flex flex-col items-center justify-center p-4">
+        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1 text-center">
           Available Loot
         </div>
         <div className="font-display text-5xl text-bl-green text-cel">
@@ -60,11 +54,8 @@ export function StatsCluster({
         </div>
       </div>
 
-      <div className="card-bl-asymmetric group hover:border-bl-red transition-colors duration-300">
-        <div className="absolute top-2 right-4 font-display text-bl-gray-dark text-4xl opacity-20 group-hover:opacity-40 transition-opacity">
-          03
-        </div>
-        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">
+      <div className="card-bl-asymmetric flex flex-col items-center justify-center p-4">
+        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1 text-center">
           Failed Attempts
         </div>
         <div className="font-display text-5xl text-bl-red text-cel">

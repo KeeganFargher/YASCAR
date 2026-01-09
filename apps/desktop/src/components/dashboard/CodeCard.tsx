@@ -62,7 +62,7 @@ export function CodeCard({
         </div>
         {code.expires && (
           <div className="text-xs text-gray-400 font-bold uppercase tracking-wide whitespace-nowrap text-right">
-            EXP: {code.expires}
+            {code.expires}
           </div>
         )}
       </div>

@@ -219,7 +219,7 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* HUD Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-l-4 border-bl-yellow pl-4 py-2 bg-gradient-to-r from-bl-yellow/5 to-transparent">
         <div>
@@ -267,7 +267,7 @@ export function DashboardPage() {
       />
 
       {/* Redemption HUD Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Loot Drops List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b-2 border-bl-gray-dark pb-2">
