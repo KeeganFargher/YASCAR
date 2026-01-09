@@ -235,9 +235,15 @@ export class ShiftClient {
                 }
             );
 
+            // Handle rate limiting - retry after delay
             if (response.status === 429) {
                 await this.sleep(this.throttle.rateLimitDelay);
                 return this.checkCode(code); // Retry
+            }
+
+            // Handle server errors (5xx) - indicates temporary server issues
+            if (response.status >= 500) {
+                return { valid: false, reason: `Server error (${response.status})` };
             }
 
             if (!response.ok) {
@@ -245,21 +251,36 @@ export class ShiftClient {
             }
 
             const html = await response.text();
+            const htmlLower = html.toLowerCase();
 
-            if (html.includes("This is not a valid SHiFT code")) {
+            // Invalid code
+            if (html.includes("This is not a valid SHiFT code") || htmlLower.includes("does not exist")) {
                 return { valid: false, reason: "Invalid code" };
             }
 
-            if (html.includes("This SHiFT code has already been redeemed")) {
+            // Code not available (may be region-locked, platform-specific, etc.)
+            if (htmlLower.includes("not available")) {
+                return { valid: false, reason: "Code not available" };
+            }
+
+            // Already redeemed by this account
+            if (html.includes("This SHiFT code has already been redeemed") || htmlLower.includes("already been redeemed")) {
                 return { valid: false, reason: "Already redeemed" };
             }
 
-            if (html.includes("expired") || html.includes("no longer valid")) {
+            // Code expired
+            if (htmlLower.includes("expired") || htmlLower.includes("no longer valid")) {
                 return { valid: false, reason: "Code expired" };
             }
 
             // Parse redemption forms
             const forms = this.parseRedemptionForms(html);
+
+            // If no forms found but no error detected, report unknown state
+            if (forms.length === 0) {
+                return { valid: false, reason: `Unknown response: ${html.substring(0, 200)}` };
+            }
+
             return { valid: true, forms };
         } catch (error) {
             return { valid: false, reason: String(error) };
@@ -328,9 +349,15 @@ export class ShiftClient {
                 redirect: "manual",
             });
 
+            // Handle rate limiting - retry after delay
             if (response.status === 429) {
                 await this.sleep(this.throttle.rateLimitDelay);
                 return this.redeemCode(form); // Retry
+            }
+
+            // Handle server errors (5xx) - indicates temporary server issues
+            if (response.status >= 500) {
+                return { success: false, code: form.code, reason: `Server error (${response.status})` };
             }
 
             // 302 redirect to /rewards or /code_redemptions indicates success
@@ -347,20 +374,35 @@ export class ShiftClient {
             }
 
             const html = await response.text();
+            const htmlLower = html.toLowerCase();
 
-            if (html.includes("already been redeemed")) {
+            // Already redeemed by this account
+            if (htmlLower.includes("already been redeemed")) {
                 return { success: false, code: form.code, reason: "Already redeemed" };
             }
 
-            if (html.includes("expired") || html.includes("no longer valid")) {
+            // Code expired
+            if (htmlLower.includes("expired") || htmlLower.includes("no longer valid")) {
                 return { success: false, code: form.code, reason: "Code expired" };
             }
 
+            // Code not available (region/platform restrictions)
+            if (htmlLower.includes("not available")) {
+                return { success: false, code: form.code, reason: "Code not available" };
+            }
+
+            // Code does not exist
+            if (htmlLower.includes("does not exist")) {
+                return { success: false, code: form.code, reason: "Invalid code" };
+            }
+
+            // Success case - redirected to My Rewards page
             if (html.includes("My Rewards") || response.status === 200) {
                 return { success: true, code: form.code, game: form.game, platform: form.platform };
             }
 
-            return { success: false, code: form.code, reason: "Unknown error" };
+            // Unknown error - include partial response for debugging
+            return { success: false, code: form.code, reason: `Unknown response: ${html.substring(0, 200)}` };
         } catch (error) {
             return { success: false, code: form.code, reason: String(error) };
         }

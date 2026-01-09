@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { loadConfig } from '../lib/store';
+import { loadConfig, getNextAutoRedeemAt, setNextAutoRedeemAt as persistNextAutoRedeemAt } from '../lib/store';
 import { getShiftClient } from '../lib/shift';
 import { fetchAvailableCodes } from '../lib/api';
 import { redeemShiftCode } from '../lib/redemption';
 import { useAppStore } from '../stores/useAppStore';
 import { getUserMessage } from '../lib/errors';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
+
+// Check interval: how often we poll to see if it's time to run (30 seconds)
+const CHECK_INTERVAL_MS = 30 * 1000;
 
 async function notify(title: string, body: string) {
     try {
@@ -23,10 +26,8 @@ async function notify(title: string, body: string) {
     }
 }
 
-
 export function useAutoRedeem() {
     const isRunning = useRef(false);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const runAutoRedeem = async () => {
@@ -38,7 +39,7 @@ export function useAutoRedeem() {
                 return;
             }
 
-            // Check network status before starting
+            // Check network status
             if (!store.isOnline) {
                 console.log('[AutoRedeem] Skipped - offline');
                 return;
@@ -46,12 +47,18 @@ export function useAutoRedeem() {
 
             try {
                 const client = getShiftClient();
-                if (!client.isAuthenticated()) return;
+                if (!client.isAuthenticated()) {
+                    console.log('[AutoRedeem] Skipped - not authenticated');
+                    return;
+                }
 
                 const config = await loadConfig();
-                if (!config.autoRedeem) return;
+                if (!config.autoRedeem) {
+                    console.log('[AutoRedeem] Skipped - auto-redeem disabled');
+                    return;
+                }
 
-                console.log('[AutoRedeem] Starting check...');
+                console.log('[AutoRedeem] Starting redemption cycle...');
                 isRunning.current = true;
 
                 // Fetch codes
@@ -80,7 +87,6 @@ export function useAutoRedeem() {
 
                 const results: { code: string; success: boolean; message: string }[] = [];
 
-                // Set initial progress using store
                 store.setRedemptionProgress({
                     current: 0,
                     total: available.length,
@@ -88,18 +94,15 @@ export function useAutoRedeem() {
                     results: [],
                 });
 
-                // Redeem each code sequentially
                 for (let i = 0; i < available.length; i++) {
                     const code = available[i];
 
-                    // Check network before each redemption
                     if (!useAppStore.getState().isOnline) {
                         console.log('[AutoRedeem] Connection lost, stopping...');
                         results.push({ code: code.code, success: false, message: 'Connection lost' });
                         break;
                     }
 
-                    // Update progress using store
                     store.setRedemptionProgress({
                         current: i + 1,
                         total: available.length,
@@ -115,8 +118,7 @@ export function useAutoRedeem() {
                         results.push({ code: code.code, ...result });
                     } catch (err) {
                         console.error(`[AutoRedeem] Error redeeming ${code.code}:`, err);
-                        const errMsg = getUserMessage(err);
-                        results.push({ code: code.code, success: false, message: errMsg });
+                        results.push({ code: code.code, success: false, message: getUserMessage(err) });
                     }
                 }
 
@@ -128,14 +130,13 @@ export function useAutoRedeem() {
                     if (failCount > 0) {
                         await notify(
                             'YASCAR Auto-Redeem Complete',
-                            `Redeemed ${successCount}/${available.length} codes. ${failCount} failed - check the app for details.`
+                            `Redeemed ${successCount}/${available.length} codes. ${failCount} failed.`
                         );
                     } else {
                         await notify('YASCAR Auto-Redeem Complete', `Successfully redeemed ${successCount} codes!`);
                     }
                 }
 
-                // Set completion using store
                 store.setRedemptionProgress({
                     current: available.length,
                     total: available.length,
@@ -146,8 +147,6 @@ export function useAutoRedeem() {
                 console.log('[AutoRedeem] Cycle complete.');
             } catch (err) {
                 console.error('[AutoRedeem] Error in auto-redeem cycle:', err);
-
-                // Set error status using store
                 useAppStore.getState().setRedemptionProgress({
                     current: 0,
                     total: 0,
@@ -168,30 +167,51 @@ export function useAutoRedeem() {
             }
         };
 
-        const scheduleNext = async () => {
+        const scheduleNextRun = async () => {
             const config = await loadConfig();
             const intervalMs = (config.checkIntervalMinutes || 60) * 60 * 1000;
+            const nextTime = new Date(Date.now() + intervalMs);
 
-            console.log(`[AutoRedeem] Next check in ${config.checkIntervalMinutes || 60} minutes`);
+            // Persist to storage (survives app restart)
+            await persistNextAutoRedeemAt(nextTime);
+            // Update React state for UI
+            useAppStore.getState().setNextAutoRedeemAt(nextTime);
 
-            timeoutRef.current = setTimeout(async () => {
-                await runAutoRedeem();
-                scheduleNext();
-            }, intervalMs);
+            console.log(`[AutoRedeem] Next run scheduled for ${nextTime.toLocaleTimeString()}`);
         };
 
-        // Run once after a short delay, then schedule recurring
-        const initialTimer = setTimeout(async () => {
-            await runAutoRedeem();
-            scheduleNext();
-        }, 5000);
+        const checkAndRun = async () => {
+            const config = await loadConfig();
+
+            // Don't do anything if auto-redeem is disabled
+            if (!config.autoRedeem) {
+                useAppStore.getState().setNextAutoRedeemAt(null);
+                return;
+            }
+
+            // Get the scheduled next run time
+            let nextRunAt = await getNextAutoRedeemAt();
+
+            // If no scheduled time or it's in the past, run now and schedule next
+            if (!nextRunAt || nextRunAt <= new Date()) {
+                console.log('[AutoRedeem] Time to run! Executing auto-redeem...');
+                await runAutoRedeem();
+                await scheduleNextRun();
+            } else {
+                // Just update the UI with current scheduled time
+                useAppStore.getState().setNextAutoRedeemAt(nextRunAt);
+            }
+        };
+
+        // Initial check shortly after mount
+        const initialTimer = setTimeout(checkAndRun, 3000);
+
+        // Set up recurring check interval
+        const intervalId = setInterval(checkAndRun, CHECK_INTERVAL_MS);
 
         return () => {
             clearTimeout(initialTimer);
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
+            clearInterval(intervalId);
         };
     }, []);
 }
-

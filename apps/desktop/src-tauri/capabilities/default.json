@@ -13,11 +13,12 @@
     "updater:default",
     "dialog:default",
     "process:default",
+    "keyring:default",
     {
       "identifier": "http:default",
       "allow": [
         { "url": "https://shift.gearboxsoftware.com/**" },
-        { "url": "https://shift.keeganfargher.co.za/**" },
+        { "url": "https://shift.yascar-tool.com/**" },
         { "url": "https://github.com/KeeganFargher/YASCAR/releases/**" }
       ]
     }

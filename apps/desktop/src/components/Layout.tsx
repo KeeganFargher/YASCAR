@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
-import appIcon from '../assets/icon.png';
-import { LogOut } from 'lucide-react';
+import { ReactNode } from "react";
+import { NavLink } from "react-router-dom";
+import appIcon from "../assets/icon.png";
+import { LogOut } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -31,25 +31,30 @@ export function Layout({ children, onLogout }: LayoutProps) {
             className="w-10 h-10 object-cover rounded-md border border-bl-gray-dark shadow-lg"
           />
           <div className="flex flex-col">
-            <span className="font-display text-bl-yellow text-2xl tracking-tighter leading-none text-cel">YASCAR</span>
-            <span className="text-[10px] text-bl-gray-light uppercase tracking-[0.15em] leading-none">Yet Another Shift Code Auto Redeemer</span>
+            <span className="font-display text-bl-yellow text-2xl tracking-tighter leading-none text-cel">
+              YASCAR
+            </span>
+            <span className="text-[10px] text-gray-400 uppercase tracking-[0.15em] leading-none">
+              Yet Another Shift Code Auto Redeemer
+            </span>
           </div>
         </div>
 
         <nav className="flex items-center gap-2">
           {[
-            { to: '/', label: 'Dashboard' },
-            { to: '/log', label: 'Echo Logs' },
-            { to: '/settings', label: 'Settings' }
-          ].map(link => (
+            { to: "/", label: "Dashboard" },
+            { to: "/log", label: "Echo Logs" },
+            { to: "/settings", label: "Settings" },
+          ].map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
                 `px-6 py-1 font-display text-lg uppercase tracking-wider skew-x-[-15deg] transition-all duration-200 border border-transparent
-                ${isActive
-                  ? 'bg-bl-yellow text-black border-bl-yellow shadow-glow-yellow translate-y-0.5'
-                  : 'text-bl-gray-light hover:text-white hover:bg-white/5 hover:border-bl-gray'
+                ${
+                  isActive
+                    ? "bg-bl-yellow text-black border-bl-yellow shadow-glow-yellow translate-y-0.5"
+                    : "text-gray-400 hover:text-white hover:bg-white/5 hover:border-bl-gray"
                 }`
               }
             >

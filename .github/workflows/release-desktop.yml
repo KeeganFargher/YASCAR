@@ -151,3 +151,37 @@ jobs:
           args: ${{ matrix.args }}
           includeRelease: true
           includeUpdaterJson: true
+
+  # Append auto-generated release notes after all builds complete
+  update-release-notes:
+    needs: [calculate-version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Append auto-generated release notes
+        run: |
+          VERSION="${{ needs.calculate-version.outputs.version }}"
+          
+          # Get current release body
+          CURRENT_BODY=$(gh release view "v${VERSION}" --repo ${{ github.repository }} --json body -q '.body')
+          
+          # Generate notes (commits since last release)
+          NOTES=$(gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="v${VERSION}" \
+            -q '.body' 2>/dev/null || echo "")
+          
+          if [ -n "$NOTES" ]; then
+            # Append to existing body
+            NEW_BODY="${CURRENT_BODY}
+
+${NOTES}"
+            gh release edit "v${VERSION}" --repo ${{ github.repository }} --notes "$NEW_BODY"
+            echo "✅ Release notes updated"
+          else
+            echo "⚠️ No additional notes to add"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
