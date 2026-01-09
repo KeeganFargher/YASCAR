@@ -1,12 +1,10 @@
 // @ts-ignore
 import { fetch } from '@tauri-apps/plugin-http';
-import { ApiResponse, ShiftCode, GameTitle } from '@yascar/types';
+import { ApiResponse, ShiftCode, GameTitle, SHIFT_CODES_API_URL } from '@yascar/types';
 import { getRedeemedCodes, getFailedCodes, FailedCodeRecord } from './store';
 import { AppError, ErrorType, getUserMessage } from './errors';
 import { withRetry } from './retry';
 import { useAppStore } from '../stores/useAppStore';
-
-const API_URL = 'https://shift.keeganfargher.co.za/shift-codes.json';
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 
 /**
@@ -29,7 +27,7 @@ export async function fetchShiftCodes(): Promise<ShiftCode[]> {
             const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
             try {
-                const response = await fetch(API_URL, {
+                const response = await fetch(SHIFT_CODES_API_URL, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',

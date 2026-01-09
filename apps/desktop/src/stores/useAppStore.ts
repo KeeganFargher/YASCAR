@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { ShiftSession } from '@yascar/shift-client';
-import { ShiftCode } from '@yascar/types';
+import { ShiftCode, SHIFT_CODES_API_URL } from '@yascar/types';
 import { saveSession, clearAllData, loadSession } from '../lib/store';
 import { setClientSession, clearClientSession, getShiftClient } from '../lib/shift';
 // @ts-ignore
@@ -68,7 +68,7 @@ interface AppState {
     setGlobalError: (error: AppError | null) => void;
 }
 
-const PING_URL = 'https://shift.keeganfargher.co.za/shift-codes.json';
+
 
 const initialRedemptionProgress: RedemptionProgress = {
     current: 0,
@@ -158,7 +158,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     checkConnectivity: async () => {
         try {
-            const response = await fetch(PING_URL, { method: 'HEAD' });
+            const response = await fetch(SHIFT_CODES_API_URL, { method: 'HEAD' });
             const online = response.ok;
             get().setOnline(online);
             return online;
