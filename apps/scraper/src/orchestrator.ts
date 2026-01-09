@@ -41,32 +41,23 @@ export async function runAllScrapers(env: Env): Promise<void> {
  */
 async function runScraper(scraper: SourceScraper, env: Env): Promise<void> {
   const startTime = Date.now();
-
   console.log(`[orchestrator] Running ${scraper.name}...`);
 
+  let totalCodes = 0;
+  const { onBatch, flush } = createBufferedSender(env, scraper.name);
+
   try {
-    const codes = await scraper.scrape();
+    await scraper.scrape(async (codes) => {
+      totalCodes += codes.length;
+      await onBatch(codes);
+    });
 
-    if (codes.length === 0) {
-      console.log(`[orchestrator] ${scraper.name}: no codes found`);
-      return;
-    }
-
-    const batch: ScrapedCodeBatch = {
-      source: scraper.name,
-      scrapedAt: new Date().toISOString(),
-      codes,
-    };
-
-    console.log(
-      `[orchestrator] Sending ${codes.length} codes from ${scraper.name} to queue...`
-    );
-
-    await env.CODES_QUEUE.send(batch);
+    // Flush any remaining codes
+    await flush();
 
     const duration = Date.now() - startTime;
     console.log(
-      `[orchestrator] ${scraper.name}: queued ${codes.length} codes in ${duration} ms`
+      `[orchestrator] ${scraper.name}: queued ${totalCodes} codes in ${duration} ms`
     );
   } catch (err: any) {
     console.error(
@@ -75,4 +66,38 @@ async function runScraper(scraper: SourceScraper, env: Env): Promise<void> {
     );
     throw err;
   }
+}
+
+/**
+ * Creates a buffered sender for queueing codes
+ */
+function createBufferedSender(env: Env, source: string) {
+  const BUFFER_SIZE = 20;
+  let buffer: import("@yascar/types").ShiftCode[] = [];
+
+  const sendBuffer = async () => {
+    if (buffer.length === 0) return;
+
+    const batch: ScrapedCodeBatch = {
+      source,
+      scrapedAt: new Date().toISOString(),
+      codes: [...buffer],
+    };
+
+    console.log(
+      `[orchestrator] Sending batch of ${buffer.length} codes from ${source}...`
+    );
+    await env.CODES_QUEUE.send(batch);
+    buffer = [];
+  };
+
+  return {
+    onBatch: async (codes: import("@yascar/types").ShiftCode[]) => {
+      buffer.push(...codes);
+      if (buffer.length >= BUFFER_SIZE) {
+        await sendBuffer();
+      }
+    },
+    flush: sendBuffer,
+  };
 }

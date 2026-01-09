@@ -71,22 +71,24 @@ export class MentalMarsScraper implements SourceScraper {
     },
   ];
 
-  async scrape(): Promise<ShiftCode[]> {
-    const allCodes: ShiftCode[] = [];
-
+  async scrape(onBatch: import("./types").BatchCallback): Promise<void> {
     for (const page of this.pages) {
       try {
         const codes = await this.scrapePage(page);
-        allCodes.push(...codes);
-        console.log(`[${this.name}] ${page.game}: found ${codes.length} codes`);
+        const unique = this.deduplicateCodes(codes);
+        const validated = sanitizeBatch(unique, this.name);
+
+        if (validated.length > 0) {
+          await onBatch(validated);
+          console.log(
+            `[${this.name}] ${page.game}: streamed ${validated.length} codes`
+          );
+        }
       } catch (error) {
         console.error(`[${this.name}] Error scraping ${page.game}:`, error);
         // Continue with other pages even if one fails
       }
     }
-
-    // Deduplicate and validate
-    return sanitizeBatch(this.deduplicateCodes(allCodes), this.name);
   }
 
   private async scrapePage(config: WebpageConfig): Promise<ShiftCode[]> {

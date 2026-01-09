@@ -28,7 +28,7 @@ export class UgoogalizerScraper implements SourceScraper {
   readonly sourceURL =
     "https://raw.githubusercontent.com/ugoogalizer/autoshift-codes/main/shiftcodes.json";
 
-  async scrape(): Promise<ShiftCode[]> {
+  async scrape(onBatch: import("./types").BatchCallback): Promise<void> {
     console.log(`[${this.name}] Fetching ${this.sourceURL}`);
 
     try {
@@ -43,7 +43,12 @@ export class UgoogalizerScraper implements SourceScraper {
       }
 
       const json = (await response.json()) as UgoogalizerResponse;
-      return this.processCodes(json.codes);
+      const codes = this.processCodes(json.codes);
+
+      if (codes.length > 0) {
+        await onBatch(codes);
+        console.log(`[${this.name}] Streamed ${codes.length} codes`);
+      }
     } catch (error) {
       console.error(`[${this.name}] Error scraping ugoogalizer:`, error);
       throw error;
