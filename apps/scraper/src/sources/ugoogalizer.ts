@@ -42,8 +42,9 @@ export class UgoogalizerScraper implements SourceScraper {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const json = (await response.json()) as UgoogalizerResponse;
-      const codes = this.processCodes(json.codes);
+      const items = (await response.json()) as UgoogalizerResponse[];
+      const allRawCodes = items.flatMap((item) => item.codes);
+      const codes = this.processCodes(allRawCodes);
 
       if (codes.length > 0) {
         await onBatch(codes);
@@ -76,7 +77,10 @@ export class UgoogalizerScraper implements SourceScraper {
         games: [game],
         source: raw.link || this.sourceURL,
         discoveredAt: raw.archived || new Date().toISOString(),
-        expires: raw.expires !== "Unknown" ? raw.expires : undefined,
+        expires:
+          raw.expires && raw.expires.toLowerCase() !== "unknown"
+            ? raw.expires
+            : undefined,
         reward: raw.reward,
         expired: raw.expired,
       });
