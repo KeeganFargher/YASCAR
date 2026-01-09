@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       draft:
-        description: 'Create as draft release (for testing)'
+        description: "Create as draft release (for testing)"
         required: false
         type: boolean
         default: false
@@ -30,10 +30,10 @@ jobs:
           MONTH=$(date +'%-m')
           DAY=$(date +'%-d')
           BASE_VERSION="${YEAR}.${MONTH}.${DAY}"
-          
+
           # Check for existing releases with same date prefix
           EXISTING=$(gh release list --limit 100 --json tagName -q '.[].tagName' 2>/dev/null | grep "^v${BASE_VERSION}" | sort -V | tail -1 || echo "")
-          
+
           if [ -z "$EXISTING" ]; then
             VERSION="$BASE_VERSION"
           else
@@ -46,7 +46,7 @@ jobs:
             fi
             VERSION="${BASE_VERSION}.${BUILD_NUM}"
           fi
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Generated version: $VERSION"
         env:
@@ -58,21 +58,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-            rust_target: 'aarch64-apple-darwin'
-          - platform: 'macos-latest'
-            args: '--target x86_64-apple-darwin'
-            rust_target: 'x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
-            rust_target: ''
-          - platform: 'windows-latest'
-            args: ''
-            rust_target: ''
+          - platform: "macos-latest"
+            args: "--target aarch64-apple-darwin"
+            rust_target: "aarch64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target x86_64-apple-darwin"
+            rust_target: "x86_64-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
+            rust_target: ""
+          - platform: "windows-latest"
+            args: ""
+            rust_target: ""
 
     runs-on: ${{ matrix.platform }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -104,7 +104,7 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ needs.calculate-version.outputs.version }}"
-          
+
           # Update tauri.conf.json
           node -e "
             const fs = require('fs');
@@ -112,7 +112,7 @@ jobs:
             config.version = '$VERSION';
             fs.writeFileSync('./apps/desktop/src-tauri/tauri.conf.json', JSON.stringify(config, null, 2) + '\n');
           "
-          
+
           # Update package.json
           node -e "
             const fs = require('fs');
@@ -120,7 +120,7 @@ jobs:
             pkg.version = '$VERSION';
             fs.writeFileSync('./apps/desktop/package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
-          
+
           echo "Updated config files to version $VERSION"
 
       - name: Build Tauri App
@@ -133,19 +133,19 @@ jobs:
         with:
           projectPath: apps/desktop
           tagName: v${{ needs.calculate-version.outputs.version }}
-          releaseName: 'YASCAR v${{ needs.calculate-version.outputs.version }}'
+          releaseName: "YASCAR v${{ needs.calculate-version.outputs.version }}"
           releaseBody: |
             ## Downloads
-            
+
             | Platform | Download |
             |----------|----------|
             | **Windows** | `.msi` or `.exe` installer |
             | **macOS (Apple Silicon)** | `.dmg` disk image |
             | **macOS (Intel)** | `.dmg` disk image |
             | **Linux** | `.deb`, `.rpm`, or `.AppImage` |
-            
+
             See the [documentation](https://github.com/KeeganFargher/YASCAR) for setup instructions.
-            
+
           releaseDraft: ${{ inputs.draft }}
           prerelease: false
           args: ${{ matrix.args }}
@@ -160,10 +160,10 @@ jobs:
       - name: Append auto-generated release notes
         run: |
           VERSION="${{ needs.calculate-version.outputs.version }}"
-          
+
           # Get current release body
           CURRENT_BODY=$(gh release view "v${VERSION}" --repo ${{ github.repository }} --json body -q '.body')
-          
+
           # Generate notes (commits since last release)
           NOTES=$(gh api \
             --method POST \
@@ -171,12 +171,10 @@ jobs:
             /repos/${{ github.repository }}/releases/generate-notes \
             -f tag_name="v${VERSION}" \
             -q '.body' 2>/dev/null || echo "")
-          
+
           if [ -n "$NOTES" ]; then
             # Append to existing body
-            NEW_BODY="${CURRENT_BODY}
-
-${NOTES}"
+            NEW_BODY=$(printf "%s\n\n%s" "$CURRENT_BODY" "$NOTES")
             gh release edit "v${VERSION}" --repo ${{ github.repository }} --notes "$NEW_BODY"
             echo "✅ Release notes updated"
           else
@@ -184,4 +182,3 @@ ${NOTES}"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
