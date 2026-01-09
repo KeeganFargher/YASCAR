@@ -247,9 +247,16 @@ export class MentalMarsScraper implements SourceScraper {
       const reward = cols[rewardIdx]
         ? decode(cols[rewardIdx].replace(/<[^>]*>/g, "").trim())
         : undefined;
-      const expires = cols[expiresIdx]
+      let expires = cols[expiresIdx]
         ? decode(cols[expiresIdx].replace(/<[^>]*>/g, "").trim())
         : undefined;
+
+      if (expires) {
+        expires = expires.replace(/^Expires\s*:?\s*/i, "").trim();
+        if (expires.toLowerCase() === "unknown") {
+          expires = undefined;
+        }
+      }
 
       codes.push({
         code,
