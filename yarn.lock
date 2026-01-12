@@ -722,41 +722,51 @@
   resolved "https://registry.npmjs.org/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.55.1.tgz"
   integrity sha512-SPEpaL6DX4rmcXtnhdrQYgzQ5W2uW3SCJch88lB2zImhJRhIIK44fkUrgIV/Q8yUNfw5oyZ5vkeQsZLhCb06lw==
 
-"@sentry-internal/browser-utils@10.32.1":
-  version "10.32.1"
+"@sentry-internal/browser-utils@10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry-internal/browser-utils/-/browser-utils-10.33.0.tgz"
+  integrity sha512-nDJFHAfiFifBfJB0OF6DV6BIsIV5uah4lDsV4UBAgPBf+YAHclO10y1gi2U/JMh58c+s4lXi9p+PI1TFXZ0c6w==
   dependencies:
-    "@sentry/core" "10.32.1"
+    "@sentry/core" "10.33.0"
 
-"@sentry-internal/feedback@10.32.1":
-  version "10.32.1"
+"@sentry-internal/feedback@10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry-internal/feedback/-/feedback-10.33.0.tgz"
+  integrity sha512-sN/VLWtEf0BeV6w6wldIpTxUQxNVc9o9tjLRQa8je1ZV2FCgXA124Iff/zsowsz82dLqtg7qp6GA5zYXVq+JMA==
   dependencies:
-    "@sentry/core" "10.32.1"
+    "@sentry/core" "10.33.0"
 
-"@sentry-internal/replay-canvas@10.32.1":
-  version "10.32.1"
+"@sentry-internal/replay-canvas@10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry-internal/replay-canvas/-/replay-canvas-10.33.0.tgz"
+  integrity sha512-MTmP6uoAVzw4CCPeqCgCLsRSiOfGLxgyMFjGTCW3E7t62MJ9S0H5sLsQ34sHxXUa1gFU9UNAjEvRRpZ0JvWrPw==
   dependencies:
-    "@sentry-internal/replay" "10.32.1"
-    "@sentry/core" "10.32.1"
+    "@sentry-internal/replay" "10.33.0"
+    "@sentry/core" "10.33.0"
 
-"@sentry-internal/replay@10.32.1":
-  version "10.32.1"
+"@sentry-internal/replay@10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry-internal/replay/-/replay-10.33.0.tgz"
+  integrity sha512-UOU9PYxuXnPop3HoQ3l4Q7SZUXJC3Vmfm0Adgad8U03UcrThWIHYc5CxECSrVzfDFNOT7w9o7HQgRAgWxBPMXg==
   dependencies:
-    "@sentry-internal/browser-utils" "10.32.1"
-    "@sentry/core" "10.32.1"
+    "@sentry-internal/browser-utils" "10.33.0"
+    "@sentry/core" "10.33.0"
 
 "@sentry/babel-plugin-component-annotate@4.6.1":
   version "4.6.1"
   resolved "https://registry.npmjs.org/@sentry/babel-plugin-component-annotate/-/babel-plugin-component-annotate-4.6.1.tgz"
   integrity sha512-aSIk0vgBqv7PhX6/Eov+vlI4puCE0bRXzUG5HdCsHBpAfeMkI8Hva6kSOusnzKqs8bf04hU7s3Sf0XxGTj/1AA==
 
-"@sentry/browser@10.32.1":
-  version "10.32.1"
+"@sentry/browser@10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry/browser/-/browser-10.33.0.tgz"
+  integrity sha512-iWiPjik9zetM84jKfk01UveW1J0+X7w8XmJ8+IrhTyNDBVUWCRJWD8FrksiN1dRSg5mFWgfMRzKMz27hAScRwg==
   dependencies:
-    "@sentry-internal/browser-utils" "10.32.1"
-    "@sentry-internal/feedback" "10.32.1"
-    "@sentry-internal/replay" "10.32.1"
-    "@sentry-internal/replay-canvas" "10.32.1"
-    "@sentry/core" "10.32.1"
+    "@sentry-internal/browser-utils" "10.33.0"
+    "@sentry-internal/feedback" "10.33.0"
+    "@sentry-internal/replay" "10.33.0"
+    "@sentry-internal/replay-canvas" "10.33.0"
+    "@sentry/core" "10.33.0"
 
 "@sentry/bundler-plugin-core@4.6.1":
   version "4.6.1"
@@ -832,8 +842,18 @@
     "@sentry/cli-win32-i686" "2.58.4"
     "@sentry/cli-win32-x64" "2.58.4"
 
-"@sentry/core@10.32.1":
-  version "10.32.1"
+"@sentry/core@10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry/core/-/core-10.33.0.tgz"
+  integrity sha512-ehH1VSUclIHZKEZVdv+klofsFIh8FFzqA6AAV23RtLepptzA8wqQzUGraEuSN25sYcNmYJ0jti5U0Ys+WZv5Dw==
+
+"@sentry/react@^10.33.0":
+  version "10.33.0"
+  resolved "https://registry.npmjs.org/@sentry/react/-/react-10.33.0.tgz"
+  integrity sha512-iMdC2Iw54ibAccatJ5TjoLlIy3VotFteied7JFvOudgj1/2eBBeWthRobZ5p6/nAOpj4p9vJk0DeLrc012sd2g==
+  dependencies:
+    "@sentry/browser" "10.33.0"
+    "@sentry/core" "10.33.0"
 
 "@sentry/vite-plugin@^4.6.1":
   version "4.6.1"
@@ -2057,11 +2077,6 @@ hermes-parser@^0.25.1:
   dependencies:
     hermes-estree "0.25.1"
 
-hoist-non-react-statics@^3.3.2:
-  version "3.3.2"
-  dependencies:
-    react-is "^16.7.0"
-
 html-entities@^2.6.0:
   version "2.6.0"
   resolved "https://registry.npmjs.org/html-entities/-/html-entities-2.6.0.tgz"
@@ -2681,9 +2696,6 @@ react-dom@^18.2.0, react-dom@>=16.8:
   dependencies:
     loose-envify "^1.1.0"
     scheduler "^0.23.2"
-
-react-is@^16.7.0:
-  version "16.13.1"
 
 react-refresh@^0.17.0:
   version "0.17.0"
